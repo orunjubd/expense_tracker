@@ -1,9 +1,19 @@
+import 'package:expense_tracker/dashboard/main_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:expense_tracker/widgets/expenses.dart'; // Verified path
 
 class Dashboard extends StatelessWidget {
-  const Dashboard({super.key});
+  // 1. ADD THESE PARAMETERS INTO YOUR CONSTRUCTOR LIST
+  const Dashboard({
+    super.key,
+    this.onChangeTheme,
+    this.currentThemeMode = ThemeMode.light, // Default value assigned!,
+  });
+
+  final void Function(ThemeMode themeMode)? onChangeTheme; // Optional function
+  final ThemeMode currentThemeMode;
+  // Optional value
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +38,12 @@ class Dashboard extends StatelessWidget {
           ),
         ],
       ),
+
+      drawer: MainDrawer(
+        onChangeTheme: onChangeTheme ?? (themeMode) {},
+        currentThemeMode: currentThemeMode,
+      ),
+
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
