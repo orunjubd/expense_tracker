@@ -8,27 +8,25 @@ import 'package:intl/intl.dart';
 import 'package:expense_tracker/models/expense.dart';
 //import 'package:flutter/foundation.dart' hide Category;
 
+// 📝 NOTE / HINTS:
+// 1) CONSTRUCTOR AND DUAL-PURPOSE MODE SWITCH PARAMETERS:
+// What it does: This is the entryway data setup for your input worksheet.
+// - 'onAddExpense' is the function pointer that carries validated forms back to the database engine.
+// - 'expenseToEdit' is an optional constructor slot. If it is null, the sheet runs in "Create New Mode".
+//   If it holds data, the sheet instantly runs in "Update/Edit Mode".
 class NewExpenses extends StatefulWidget {
   const NewExpenses({
     required this.onAddExpense,
     this.expenseToEdit, // ADD THIS OPTIONAL PARAMETER
     super.key,
   });
-
   final void Function(Expense expense) onAddExpense;
   final Expense? expenseToEdit; // Holds the transaction record being modified
-
   @override
   State<NewExpenses> createState() => _ExpensesState();
 }
 
 class _ExpensesState extends State<NewExpenses> {
-  // var _enteredTitle = '';
-  // void _saveTitleInput(String inputValue) {
-  //   _enteredTitle = inputValue;
-  // }
-
-  //  ============= alternate way ================
   final _titleController = TextEditingController();
   final _amountController = TextEditingController();
   //final formatter = DateFormat('dd-MM-yyyy  HH:mm:ss');
@@ -38,6 +36,12 @@ class _ExpensesState extends State<NewExpenses> {
   // 1. FIXED: Define the state variable to track the selected category
   Category _selectedCategory = Category.food;
 
+  // 📝 NOTE / HINTS:
+  //2) PRE-FILL INITIALIZATION ENGINE (INITSTATE)
+  // What it does: This is your form's pre-fill automation hub.
+  // - When 'expenseToEdit' is detected, it intercepts form load, grabs the saved values straight out
+  //   of your SQLite row model, and inserts them into your input variables (`_titleController.text`, etc.).
+  // How it connects: Populates your inputs automatically so the user doesn't re-type old data when editing a date or price!
   @override
   void initState() {
     super.initState();
@@ -50,6 +54,11 @@ class _ExpensesState extends State<NewExpenses> {
     }
   }
 
+  // 📝 NOTE / HINTS:
+  // 3) NATIVE CALENDAR DATE PICKER SHEET LAUNCH (_PRESENTDATEPICKER):
+  // What it does: This triggers Flutter's native mobile overlay calendar display screen.
+  // - 'async/await' is used to halt processing and calmly wait for the user to touch a day grid item.
+  // - 'firstDate' and 'lastDate' set safety boundary constraints so users cannot pick weird futures or long-past years.
   void _presentDatePicker() async {
     // async because it returns a future
     final now = DateTime.now();
@@ -70,6 +79,13 @@ class _ExpensesState extends State<NewExpenses> {
   // ==========================================================================
   // Update your validation submit logic to branch between creating and updating:
   // ==========================================================================
+  // 📝 NOTE / HINTS:
+  // 4) INPUT WATCHDOG VALIDATION & STRING CAPITALIZER (_SUBMITEXPENSEDATA):
+  // What it does: This is your form validation firewall security checkpoint.
+  // - 'double.tryParse()' converts user typed numbers safely and flags an alert dialog if inputs are letters or blank.
+  // - 'capitalizedTitle' performs a premium string manipulation step: it splits your string, turns index character [0]
+  //   into a Capital, and joins it back together (e.g. automatically converting 'taxi ride' into 'Taxi ride').
+  // - If updating, it keeps the item's original unique ID; if brand new, it passes null to let the model generate a new UUID.
   void _submitExpenseData() {
     final enteredAmount = double.tryParse(
       _amountController.text,
@@ -118,6 +134,11 @@ class _ExpensesState extends State<NewExpenses> {
     }
   }
 
+  // 📝 NOTE / HINTS:
+  // 5) MEMORY DISPOSER (DISPOSE)
+  // What it does: This is an important garbage collection memory cleaner.
+  // - It forcefully destroys your 'TextEditingController' listening threads when the overlay slides down.
+  // How it connects: Prevents background text listeners from leaking system tracking data and lagging your phone processor!
   @override
   void dispose() {
     _titleController.dispose();
@@ -125,6 +146,13 @@ class _ExpensesState extends State<NewExpenses> {
     super.dispose();
   }
 
+  // 📝 NOTE / HINTS:
+  // 6) RESPONSIVE KEYBOARD INSET CUSHIONING WRAPPER:
+  // What it does: This handles advanced mobile keyboard layout protection math.
+  // - 'MediaQuery.of(context).viewInsets.bottom' queries the device pixel grid to measure exactly how high
+  //   the phone's digital keyboard is sticking up.
+  // - 'SingleChildScrollView' uses this height value to pad the bottom of the container, shifting form inputs
+  //   upwards so the typing keyboard never blocks the text fields or triggers yellow layout overflow stripe crashes!
   @override
   Widget build(context) {
     // Captures the exact height taken up by the smartphone software keyboard
@@ -156,6 +184,11 @@ class _ExpensesState extends State<NewExpenses> {
                       keyboardType: TextInputType.numberWithOptions(
                         decimal: true,
                       ), // Allows decimal numbers
+                      // 📝 NOTE / HINTS:
+                      // 7) PRECISE KEYBOARD REGEX FILTER ROW:
+                      // What it does: This is an extra text validation layer operating inside your price input row.
+                      // - 'FilteringTextInputFormatter.allow()' uses a strict regular expression mask layer (`RegExp(r'^\d*\.?\d*')`)
+                      //   to block users from ever typing commas, minus signs, or text letters into your database number fields at the keyboard level.
                       inputFormatters: [
                         // This blocks minus signs and text characters completely at the keyboard level
                         FilteringTextInputFormatter.allow(
@@ -196,6 +229,11 @@ class _ExpensesState extends State<NewExpenses> {
                 mainAxisAlignment: MainAxisAlignment
                     .end, // Aligns buttons beautifully to the right
                 children: [
+                  // 📝 NOTE / HINTS:
+                  // 8) ENUM VALUES DYNAMIC DROPDOWN MAPPER:
+                  // What it does: This converts your rigid, coded category enum properties into a visual on-screen select option list.
+                  // - It loops through 'Category.values' and map-transforms each attribute item straight into a 'DropdownMenuItem' text block,
+                  //   automatically capitalizing the string name for a professional visual appearance.
                   // Let the dropdown take up half the row dynamically
                   DropdownButton<Category>(
                     value:

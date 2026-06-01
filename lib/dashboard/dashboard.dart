@@ -27,6 +27,13 @@ class Dashboard extends StatelessWidget {
     return total;
   }
 
+  // 📝 NOTE / HINTS:
+  // CATEGORY SPENDING SUM CALCULATOR:
+  // What it does: This is a math filter function. It loops through your entire database
+  // list array and adds up the prices of items that match ONE specific category choice
+  // (like summing up ONLY Food receipts).
+  // How it connects: The Pie Chart calls this function 4 times (once for Work, Food, Leisure,
+  // and Travel) to calculate how big each colored slice should be dynamically.
   // CATEGORY UTILITY: Sums up expenditures specifically for an individual category selection
   double _getCategorySum(Category category) {
     double sum = 0.0;
@@ -39,6 +46,13 @@ class Dashboard extends StatelessWidget {
   }
 
   // ===============================================
+  // 📝 NOTE / HINTS:
+  // MAIN VISUAL SCREEN BUILD TREE:
+  // What it does: This is the master layout blueprint of the Dashboard page. Every widget
+  // you see on the phone screen (the title headers, greeting texts, cards, and list builders)
+  // is nested right inside this single root function framework.
+  // How it connects: Flutter automatically calls this method on startup. It pulls your global
+  // design styles using 'Theme.of(context)' to draw the purple AppBar top bar and background scaffold.
   //  Copy the Bottom Section (Visual Screen Build Tree)
   // This contains your main screen structure layouts, the calculated live pie chart
   // and the math slices loop, and button helper cards
@@ -281,6 +295,12 @@ class Dashboard extends StatelessWidget {
     );
   }
 
+  // 📝 NOTE / HINTS:
+  // CHART LEGEND LABEL GENERATOR:
+  // What it does: This is a small, reusable visual layout template tool. Instead of repeating
+  // messy row code 4 separate times for your legend labels, this widget builds a neat indicator
+  // row containing a tiny colored circle dot right next to a text label string (e.g., a green dot next to 'Food').
+  // How it connects: It sits inside the bottom row of your Pie Chart breakdown box card layout.
   Widget _buildLegendItem(String label, Color color) {
     return Row(
       children: [
@@ -294,6 +314,14 @@ class Dashboard extends StatelessWidget {
       ],
     );
   }
+
+  // 📝 NOTE / HINTS:
+  // FINANCIAL STATISTIC TILE CARD BUILDER:
+  // What it does: This is a reusable design layout engine for your upper balance summaries.
+  // It builds a single rectangular information tile card containing a custom Material icon vector,
+  // a grey sub-label tracking text, and a bold dynamic monetary string value block.
+  // How it connects: It is called twice inside a horizontal Row layout near the top of the screen:
+  // once to build your 'Total Balance' green tile card, and once to build your 'This Month' red spending tile card.
 
   Widget _buildStatCard(
     String label,
