@@ -1,49 +1,68 @@
 import 'package:expense_tracker/dashboard/main_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:expense_tracker/widgets/expenses.dart'; // Verified path
+import 'package:expense_tracker/widgets/expenses.dart';
+import 'package:expense_tracker/models/expense.dart';
 
 class Dashboard extends StatelessWidget {
-  // 1. ADD THESE PARAMETERS INTO YOUR CONSTRUCTOR LIST
   const Dashboard({
     super.key,
     this.onChangeTheme,
-    this.currentThemeMode = ThemeMode.light, // Default value assigned!,
+    this.currentThemeMode = ThemeMode.light,
+    required this.expenses,
+    required this.onRefresh,
   });
 
-  final void Function(ThemeMode themeMode)? onChangeTheme; // Optional function
+  final void Function(ThemeMode themeMode)? onChangeTheme;
   final ThemeMode currentThemeMode;
-  // Optional value
+  final List<Expense> expenses;
+  final VoidCallback onRefresh;
 
+  // MATH UTILITY: Calculate total amount spent inside the tracker app
+  double get _totalSpending {
+    double total = 0.0;
+    for (final exp in expenses) {
+      total += exp.amount;
+    }
+    return total;
+  }
+
+  // CATEGORY UTILITY: Sums up expenditures specifically for an individual category selection
+  double _getCategorySum(Category category) {
+    double sum = 0.0;
+    for (final exp in expenses) {
+      if (exp.category == category) {
+        sum += exp.amount;
+      }
+    }
+    return sum;
+  }
+
+  // ===============================================
+  //  Copy the Bottom Section (Visual Screen Build Tree)
+  // This contains your main screen structure layouts, the calculated live pie chart
+  // and the math slices loop, and button helper cards
+  // ===============================================
   @override
   Widget build(BuildContext context) {
     final primaryColor = Theme.of(context).colorScheme.primary;
+
+    // Calculate dynamic stats for your overview summary text blocks
+    final totalBalanceText =
+        '\$${(5000.0 - _totalSpending).toStringAsFixed(2)}';
+    final monthlySpendingText = '\$${_totalSpending.toStringAsFixed(2)}';
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Wallet Dashboard'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.account_circle_outlined),
-            onPressed: () {
-              ScaffoldMessenger.of(context).removeCurrentSnackBar();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Account profile manager coming soon!'),
-                  behavior: SnackBarBehavior.floating,
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
-          ),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: onRefresh),
         ],
       ),
-
       drawer: MainDrawer(
-        onChangeTheme: onChangeTheme ?? (themeMode) {},
+        onChangeTheme: onChangeTheme ?? (mode) {},
         currentThemeMode: currentThemeMode,
       ),
-
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -63,13 +82,13 @@ class Dashboard extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // Overview Cards Row Grid
+              // Overview Cards Row Grid displaying LIVE math metrics
               Row(
                 children: [
                   Expanded(
                     child: _buildStatCard(
                       'Total Balance',
-                      '\$4,250.00',
+                      totalBalanceText,
                       Icons.account_balance_wallet,
                       Colors.green,
                     ),
@@ -78,7 +97,7 @@ class Dashboard extends StatelessWidget {
                   Expanded(
                     child: _buildStatCard(
                       'This Month',
-                      '-\$320.50',
+                      monthlySpendingText,
                       Icons.trending_down,
                       Colors.redAccent,
                     ),
@@ -87,12 +106,12 @@ class Dashboard extends StatelessWidget {
               ),
               const SizedBox(height: 30),
 
-              // 1. FIXED: Calling buildBody helper here loads your chart onto the screen!
+              // Live BuildBody execution call passes real-time values onto screen!
               buildBody(context),
 
               const SizedBox(height: 30),
 
-              // QUICK ACTIONS NAVIGATION SECTION
+              // Quick Actions Routing Panel
               Text(
                 'Quick Actions',
                 style: Theme.of(context).textTheme.titleMedium,
@@ -104,11 +123,12 @@ class Dashboard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: GestureDetector(
-                  onTap: () {
-                    Navigator.push(
+                  onTap: () async {
+                    await Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const Expenses()),
                     );
+                    onRefresh(); // Recalculate values automatically upon return transition!
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(20.0),
@@ -157,12 +177,23 @@ class Dashboard extends StatelessWidget {
     );
   }
 
-  // 2. FIXED: buildBody cleanly returns the complete PieChart layout block now
   Widget buildBody(BuildContext context) {
     final primaryColor = Theme.of(context).colorScheme.primary;
     final secondaryColor = Theme.of(context).colorScheme.secondary;
     final tertiaryColor = Theme.of(context).colorScheme.tertiary;
     final errorColor = Theme.of(context).colorScheme.error;
+
+    final workSum = _getCategorySum(Category.work);
+    final foodSum = _getCategorySum(Category.food);
+    final leisureSum = _getCategorySum(Category.leisure);
+    final travelSum = _getCategorySum(Category.travel);
+
+    final total = _totalSpending;
+
+    final workPercent = total == 0 ? 25.0 : (workSum / total) * 100;
+    final foodPercent = total == 0 ? 25.0 : (foodSum / total) * 100;
+    final leisurePercent = total == 0 ? 25.0 : (leisureSum / total) * 100;
+    final travelPercent = total == 0 ? 25.0 : (travelSum / total) * 100;
 
     return Card(
       elevation: 2,
@@ -188,46 +219,46 @@ class Dashboard extends StatelessWidget {
                   sections: [
                     PieChartSectionData(
                       color: primaryColor,
-                      value: 40,
-                      title: '40%',
+                      value: workPercent,
+                      title: '${workPercent.toStringAsFixed(0)}%',
                       radius: 25,
                       titleStyle: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        fontSize: 11,
                       ),
                     ),
                     PieChartSectionData(
                       color: secondaryColor,
-                      value: 30,
-                      title: '30%',
+                      value: foodPercent,
+                      title: '${foodPercent.toStringAsFixed(0)}%',
                       radius: 25,
                       titleStyle: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        fontSize: 11,
                       ),
                     ),
                     PieChartSectionData(
                       color: tertiaryColor,
-                      value: 15,
-                      title: '15%',
+                      value: leisurePercent,
+                      title: '${leisurePercent.toStringAsFixed(0)}%',
                       radius: 25,
                       titleStyle: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        fontSize: 11,
                       ),
                     ),
                     PieChartSectionData(
                       color: errorColor,
-                      value: 15,
-                      title: '15%',
+                      value: travelPercent,
+                      title: '${travelPercent.toStringAsFixed(0)}%',
                       radius: 25,
                       titleStyle: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        fontSize: 11,
                       ),
                     ),
                   ],
@@ -294,4 +325,4 @@ class Dashboard extends StatelessWidget {
       ),
     );
   }
-}
+} // End of file class container

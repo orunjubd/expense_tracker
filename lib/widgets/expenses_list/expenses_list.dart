@@ -7,20 +7,26 @@ class ExpensesList extends StatelessWidget {
     super.key,
     required this.expenses,
     required this.onRemoveExpense,
+    required this.onEditExpense,
   });
 
   final List<Expense> expenses; // = const [];
   final void Function(Expense expense)
   onRemoveExpense; // 2. Declare the function variable
+  final void Function({Expense? expense}) onEditExpense; // 👈 2. Define it
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
       itemCount: expenses.length,
       itemBuilder: (ctx, index) {
-        //
-        final currentExpense = expenses[index]; //
+        // ctx => context object => current context
+        final currentExpense = expenses[index]; // Get the current expense
+
         // Inside your expenses_list.dart file:
+        // ==============================================================
+        // Step 4: Link the Click Event to your Cards inside the ListView
+        // =============================================================
         return Dismissible(
           key: ValueKey(currentExpense.id),
           background: Container(
@@ -33,8 +39,15 @@ class ExpensesList extends StatelessWidget {
           onDismissed: (direction) {
             onRemoveExpense(currentExpense); // Handles the swipe deletion
           },
-          // FIXED: Pass the removal function pointer into the individual card widget here
-          child: ExpenseItem(currentExpense, onDelete: onRemoveExpense),
+          child: GestureDetector(
+            onTap: () {
+              onEditExpense(
+                expense: currentExpense,
+              ); // Opens editing modal form sheet
+            },
+            // FIXED: Pass the removal function pointer into the individual card widget here
+            child: ExpenseItem(currentExpense, onDelete: onRemoveExpense),
+          ),
         );
       },
       // ExpenseItem(expenses[index]), // => syntex is return

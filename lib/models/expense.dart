@@ -18,12 +18,14 @@ const categoryIcons = {
 
 class Expense {
   Expense({
-    //required this.id,
+    String? id, // 1. FIXED: Allow an optional custom ID string input parameter
     required this.title,
     required this.amount,
     required this.date,
     required this.category,
-  }) : id = uuid.v4();
+  }) : id =
+           id ??
+           uuid.v4(); // 2. FIXED: Keep the existing ID if it exists, otherwise generate a new one!
 
   final String id;
   final String title;

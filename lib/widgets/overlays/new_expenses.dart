@@ -9,8 +9,14 @@ import 'package:expense_tracker/models/expense.dart';
 //import 'package:flutter/foundation.dart' hide Category;
 
 class NewExpenses extends StatefulWidget {
-  const NewExpenses({required this.onAddExpense, super.key});
+  const NewExpenses({
+    required this.onAddExpense,
+    this.expenseToEdit, // ADD THIS OPTIONAL PARAMETER
+    super.key,
+  });
+
   final void Function(Expense expense) onAddExpense;
+  final Expense? expenseToEdit; // Holds the transaction record being modified
 
   @override
   State<NewExpenses> createState() => _ExpensesState();
@@ -32,6 +38,18 @@ class _ExpensesState extends State<NewExpenses> {
   // 1. FIXED: Define the state variable to track the selected category
   Category _selectedCategory = Category.food;
 
+  @override
+  void initState() {
+    super.initState();
+    // If we are editing, pre-fill all form parameters with the saved database row values!
+    if (widget.expenseToEdit != null) {
+      _titleController.text = widget.expenseToEdit!.title;
+      _amountController.text = widget.expenseToEdit!.amount.toString();
+      _selectedDate = widget.expenseToEdit!.date;
+      _selectedCategory = widget.expenseToEdit!.category;
+    }
+  }
+
   void _presentDatePicker() async {
     // async because it returns a future
     final now = DateTime.now();
@@ -49,6 +67,9 @@ class _ExpensesState extends State<NewExpenses> {
     });
   }
 
+  // ==========================================================================
+  // Update your validation submit logic to branch between creating and updating:
+  // ==========================================================================
   void _submitExpenseData() {
     final enteredAmount = double.tryParse(
       _amountController.text,
@@ -86,6 +107,7 @@ class _ExpensesState extends State<NewExpenses> {
 
       widget.onAddExpense(
         Expense(
+          id: widget.expenseToEdit?.id,
           title: capitalizedTitle,
           amount: enteredAmount,
           date: _selectedDate!,
@@ -222,7 +244,11 @@ class _ExpensesState extends State<NewExpenses> {
                     //   // 4. Close the modal
                     //   Navigator.pop(context);
                     // },
-                    child: const Text('Save Expanse'),
+                    child: Text(
+                      widget.expenseToEdit == null
+                          ? 'Save Expense'
+                          : 'Update Changes',
+                    ),
                   ),
                 ],
               ),
