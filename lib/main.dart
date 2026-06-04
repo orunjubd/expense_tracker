@@ -3,10 +3,21 @@ import 'package:expense_tracker/dashboard/dashboard.dart';
 import 'package:expense_tracker/theme/app_theme.dart';
 import 'package:expense_tracker/models/expense.dart'; // 1. IMPORT YOUR MODEL
 import 'package:expense_tracker/services/database_helper.dart'; // 2. IMPORT SQL HELPER
+//import 'package:expense_tracker/auth/auth_screen.dart';
 
-void main() {
+// ===========================================================
+// Step 2: Initialize Firebase inside main.dart
+// ===========================================================
+import 'package:firebase_core/firebase_core.dart'; // 1. Import the engine
+import 'firebase_options.dart'; // Generated automatically later by the FlutterFire CLI tool
+
+void main() async {
+  // 2. Ensures the native engine frameworks are completely bound before booting
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MyApp());
+
+  // 3. Initialize Firebase. Spawns the background communication channel to your cloud backend servers
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  runApp(const MyApp()); // Runs your main entry widget safely
 }
 
 class MyApp extends StatefulWidget {

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:expense_tracker/widgets/expenses.dart';
+import 'package:expense_tracker/auth/auth_screen.dart';
 
 // 📝 NOTE / HINTS:
 // 1) CONSTRUCTOR AND PARAMETER BLUEPRINT:
@@ -55,19 +57,99 @@ class MainDrawer extends StatelessWidget {
             ),
           ),
 
+          // Navigation Actions Option 1: Dashboard (Admin CAN VIEW THEIR DASHBOARD HERE)
+          ListTile(
+            leading: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Theme.of(context)
+                    .colorScheme
+                    .errorContainer, // Gives an exclusive red/orange tint alert look
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.admin_panel_settings_rounded,
+                color: Theme.of(context).colorScheme.error,
+                size: 20,
+              ),
+            ),
+            title: const Text(
+              'Admin Console Login',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: const Text(
+              'Manage global app configurations',
+              style: TextStyle(fontSize: 12),
+            ),
+            trailing: const Icon(
+              Icons.arrow_forward_ios,
+              size: 14,
+              color: Colors.grey,
+            ),
+            onTap: () {
+              Navigator.pop(
+                context,
+              ); // 1. Dismiss the sliding sidebar menu safely
+
+              // 2. Slide smoothly into your professional Cloud Auth Page!
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AuthScreen()),
+              );
+            },
+          ),
+
           // 📝 NOTE / HINTS:
           // 3) NAVIGATION ROUTE LIST ITEMS:
           // What it does: This creates the clickable button items in your menu.
           // - 'ListTile' generates a row with a dashboard icon on the left (leading) and a clean text title.
           // - 'Navigator.pop(context)' is the click action handler (onTap). It simply slides the sidebar
           //   backward off the screen to reveal the main dashboard layout underneath.
-          // Navigation Actions Option 1: Dashboard
+          // Navigation Actions Option 1: Dashboard (USERS CAN VIEW THEIR DASHBOARD HERE)
           ListTile(
             leading: const Icon(Icons.dashboard_outlined),
             title: const Text('Dashboard'),
             onTap: () => Navigator.pop(context),
           ),
           const Divider(),
+
+          // 1. NEW: Manage Expenses Menu Button
+          ListTile(
+            leading: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.receipt_long_rounded,
+                color: Theme.of(context).colorScheme.primary,
+                size: 20,
+              ),
+            ),
+            title: Text(
+              'Manage Expenses',
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            subtitle: const Text(
+              'View list, graphs, and add receipts',
+              style: TextStyle(fontSize: 12),
+            ),
+            trailing: const Icon(
+              Icons.arrow_forward_ios,
+              size: 14,
+              color: Colors.grey,
+            ),
+            onTap: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const Expenses()),
+              );
+              //onRefresh(); // Recalculate values automatically upon return transition!
+            },
+          ),
 
           // Appearance Configuration Header Label Section
           const Padding(
@@ -91,45 +173,34 @@ class MainDrawer extends StatelessWidget {
           // Instead of coding tracking logic into each button separately, this parent widget listens for any tap
           // inside its list, instantly runs the 'onChangeTheme' function, and updates the entire app interface colors globally.
           // 1. Wrap the selections inside the modern RadioGroup widget
-          RadioGroup<ThemeMode>(
-            groupValue: currentThemeMode, // Centralized value controller
-            onChanged: (value) {
-              if (value != null) onChangeTheme(value);
-            },
-            // 2. Pass a layout container (like a Column) to hold your options cleanly
-            child: Column(
-              children: [
-                // 📝 NOTE / HINTS:
-                // INDIVIDUAL RADIO LIST OPTION TILES:
-                // What it does: These are the selectable light/dark option rows inside the theme group.
-                // - Each 'RadioListTile' holds its own specific platform code settings value ('ThemeMode.light' or 'ThemeMode.dark').
-                // - When selected, it communicates with the parent 'RadioGroup' to switch selection ring highlights smoothly.
-                // Light Mode Option
-                RadioListTile<ThemeMode>(
-                  title: const Row(
-                    children: [
-                      Icon(Icons.light_mode_outlined, size: 18),
-                      SizedBox(width: 8),
-                      Text('Light Mode'),
-                    ],
-                  ),
-                  value: ThemeMode
-                      .light, // NO individual groupValue or onChanged needed here anymore!
-                ),
-
-                // Dark Mode Option
-                RadioListTile<ThemeMode>(
-                  title: const Row(
-                    children: [
-                      Icon(Icons.dark_mode_outlined, size: 18),
-                      SizedBox(width: 8),
-                      Text('Dark Mode'),
-                    ],
-                  ),
-                  value: ThemeMode.dark, // Clean and simple parameter matching
-                ),
-              ],
-            ),
+          ExpansionTile(
+            leading: const Icon(Icons.palette_outlined),
+            title: const Text('Theme'),
+            shape: const Border(),
+            children: [
+              // Light Option Tile
+              ListTile(
+                selected: currentThemeMode == ThemeMode.light,
+                selectedColor: Theme.of(context).colorScheme.primary,
+                leading: const Icon(Icons.light_mode_outlined, size: 18),
+                title: const Text('Light', style: TextStyle(fontSize: 14)),
+                trailing: currentThemeMode == ThemeMode.light
+                    ? const Icon(Icons.check, size: 16)
+                    : null,
+                onTap: () => onChangeTheme(ThemeMode.light),
+              ),
+              // Dark Option Tile
+              ListTile(
+                selected: currentThemeMode == ThemeMode.dark,
+                selectedColor: Theme.of(context).colorScheme.primary,
+                leading: const Icon(Icons.dark_mode_outlined, size: 18),
+                title: const Text('Dark', style: TextStyle(fontSize: 14)),
+                trailing: currentThemeMode == ThemeMode.dark
+                    ? const Icon(Icons.check, size: 16)
+                    : null,
+                onTap: () => onChangeTheme(ThemeMode.dark),
+              ),
+            ],
           ),
 
           // 📝 NOTE / HINTS:

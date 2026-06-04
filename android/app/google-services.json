@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "249167987682",
+    "project_id": "trackflow-cloud-engine",
+    "storage_bucket": "trackflow-cloud-engine.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:249167987682:android:ddb6d8a1121c8526836fbb",
+        "android_client_info": {
+          "package_name": "com.example.expense_tracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAIuXGZ-cK5HokA6dlLjbn-y2T_fxtkZ10"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

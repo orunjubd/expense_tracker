@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:expense_tracker/models/expense.dart';
 import 'package:expense_tracker/widgets/expenses_list/expenses_list.dart';
 import 'package:expense_tracker/services/database_helper.dart';
+import 'package:expense_tracker/services/report_service.dart'; // 1. Imported our reporting service class
 
 class Expenses extends StatefulWidget {
   @override
@@ -18,6 +19,8 @@ class Expenses extends StatefulWidget {
 
 class _ExpensesState extends State<Expenses> {
   List<Expense> _registeredExpenses = [];
+  final ReportService _reportService =
+      ReportService(); // instantiate the ReportService object
 
   // 📝 NOTE / HINTS:
   // 1) STATEFUL LIFECYCLE IGNITION (INITSTATE):
@@ -42,6 +45,63 @@ class _ExpensesState extends State<Expenses> {
     setState(() {
       _registeredExpenses = savedData;
     });
+  }
+
+  // 3. Added popup selector modal drawer function
+  // 1. THIS POPUP METOD MUST LIVE INSIDE THE _ExpensesState CLASS WALLS
+  void _showExportOptions(BuildContext context) {
+    if (_registeredExpenses.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No expenses recorded to export yet!'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      useSafeArea: true,
+      builder: (ctx) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              const ListTile(
+                title: Text(
+                  'Export Report Options',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(
+                  Icons.table_chart_rounded,
+                  color: Colors.green,
+                ),
+                title: const Text('Export to CSV Spreadsheet'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _reportService.exportToCSV(_registeredExpenses);
+                },
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.picture_as_pdf_rounded,
+                  color: Colors.red,
+                ),
+                title: const Text('Export to PDF Document'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _reportService.exportToPDF(_registeredExpenses);
+                },
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   // ===========================================================================
@@ -181,6 +241,11 @@ class _ExpensesState extends State<Expenses> {
       appBar: AppBar(
         title: const Text('Expense Tracker'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.ios_share_rounded),
+            tooltip: 'Export Records',
+            onPressed: () => _showExportOptions(context),
+          ),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: _openAddExpenseOverlay,
