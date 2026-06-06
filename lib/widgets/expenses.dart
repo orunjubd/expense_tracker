@@ -210,6 +210,9 @@ class _ExpensesState extends State<Expenses> {
   //   'Financial Analytics' Header text ➔ Dynamic Category Bar 'Chart()' ➔ Scrolled Transaction list ('Expanded').
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    //print(MediaQuery.of(context).size.height);
+
     // 📝 NOTE / HINTS:
     // 6) CONDITIONAL FALLBACK CONTENT WATCHDOG (mainContent):
     // What it does: This is a conditional layout monitor. By default, it sets 'mainContent'
@@ -253,30 +256,68 @@ class _ExpensesState extends State<Expenses> {
         ],
       ),
       body: Center(
-        child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start, // Aligns text to the left
-          children: [
-            // 1. TOP TITLE SECTION (Stays clean at the top)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
-              child: Text(
-                'Financial Analytics',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+        child: width < 600
+            ? Column(
+                crossAxisAlignment:
+                    CrossAxisAlignment.start, // Aligns text to the left
+                children: [
+                  // 1. TOP TITLE SECTION (Stays clean at the top)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
+                    child: Text(
+                      'Financial Analytics',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
 
-            // 2. FIXED: Replaced the old static placeholder Container box
-            // with your real dynamic Chart diagram component!
-            Chart(expenses: _registeredExpenses),
-            const SizedBox(height: 12),
-            // 3. THE SCROLLING EXPENSE RECORDS LIST (Takes up the remaining screen)
-            Expanded(child: mainContent),
-          ],
-        ),
+                  // B. FIXED: Added the missing Chart widget to vertical view!
+                  Chart(expenses: _registeredExpenses),
+
+                  const SizedBox(height: 12),
+
+                  // C. FIXED: Added the missing scrolling list container widget to vertical view!
+                  Expanded(child: mainContent),
+                ],
+              )
+            : Row(
+                crossAxisAlignment: CrossAxisAlignment
+                    .start, // Aligns content up to the top margin
+                children: [
+                  // A. IN LANDSCAPE: The Chart occupies the left 50% section segment
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
+                          child: Text(
+                            'Financial Analytics',
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                        ),
+                        Expanded(child: Chart(expenses: _registeredExpenses)),
+                      ],
+                    ),
+                  ),
+
+                  // B. IN LANDSCAPE: The Scrolling list occupies the right 50% section segment
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        top: 24.0,
+                      ), // Uniform baseline margin balance
+                      child: mainContent,
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }

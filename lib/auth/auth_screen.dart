@@ -3,8 +3,8 @@
 //==========================================================
 
 import 'package:flutter/material.dart';
-import 'package:expense_tracker/admin/admin_dashboard.dart';
-import 'auth_service.dart'; // 1. Import our fresh service class
+//import 'package:expense_tracker/admin/admin_dashboard.dart';
+import 'package:expense_tracker/auth/auth_service.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -30,6 +30,7 @@ class _AuthScreenState extends State<AuthScreen> {
   var _enteredEmail = '';
   var _enteredPassword = '';
   var _enteredUsername = '';
+  var _selectedRole = 'user'; // Defaults safely to standard user mode
 
   // 📝 NOTE / HINTS:
   // 2) Form Submission Handler and Async Authentication Gate (_submitAuthForm):
@@ -40,15 +41,13 @@ class _AuthScreenState extends State<AuthScreen> {
   // 4. Safely guards against context drops via 'if (!mounted) return;' before performing layout routing transitions.
   void _submitAuthForm() async {
     final isValid = _formKey.currentState?.validate() ?? false;
-    if (!isValid) {
-      return;
-    }
+    if (!isValid) return;
+
     _formKey.currentState?.save();
 
     setState(() {
       _isLoading = true; // Turn on spinning progress indicator
     });
-
     try {
       if (_isLoginMode) {
         // Run cloud authentication request
@@ -58,20 +57,22 @@ class _AuthScreenState extends State<AuthScreen> {
         );
       } else {
         // Run cloud registration request
-        await _authService.signUpAdmin(
+        await _authService.signUpUser(
           email: _enteredEmail.trim(),
           password: _enteredPassword.trim(),
           username: _enteredUsername.trim(),
+          role: _selectedRole, // 👈 PASS THE DYNAMIC ROLE SELECTION HERE
         );
       }
 
       if (!mounted) return;
 
       // Authentication clear: Router navigates forward to the Admin System
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const AdminDashboard()),
-      );
+      // Navigator.pushReplacement(
+      //   context,
+      //   MaterialPageRoute(builder: (context) => const AdminDashboard()),
+      // );
+
       // 📝 NOTE / HINTS:
       // 3) Visual Server Validation Error Guard (Catch Block):
       // What it does: This is your network connection validation watchdog block.
@@ -79,11 +80,13 @@ class _AuthScreenState extends State<AuthScreen> {
       // this block intercepts the network crash and pushes a clean error string onto a floating SnackBar notification layer.
     } catch (error) {
       if (!mounted) return;
+      ScaffoldMessenger.of(context).clearSnackBars();
       // Handle server validation drops by triggering professional warning snackbars
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error.toString().replaceAll('Exception: ', '')),
           backgroundColor: Theme.of(context).colorScheme.error,
+          behavior: SnackBarBehavior.floating, // Premium floating format look
         ),
       );
       // 📝 NOTE / HINTS:
@@ -106,10 +109,10 @@ class _AuthScreenState extends State<AuthScreen> {
     // anyway, bypassing security and forcing the screen forward into your AdminDashboard layout window regardless.
     // REMEDY: You should safely DELETE this duplicate code block, as your secure routing line is already written inside the try loop above!
     // 2. Visual feedback: Simulates a successful login and routes to Admin Dashboard
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const AdminDashboard()),
-    );
+    // Navigator.pushReplacement(
+    //   context,
+    //   MaterialPageRoute(builder: (context) => const AdminDashboard()),
+    // );
   }
 
   // 📝 NOTE / HINTS:
@@ -147,6 +150,34 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                 ),
                 const SizedBox(height: 32),
+
+                if (!_isLoginMode)
+                  DropdownButtonFormField<String>(
+                    initialValue: _selectedRole,
+                    decoration: const InputDecoration(
+                      labelText: 'Account Role Profile Type',
+                      prefixIcon: Icon(Icons.badge_outlined),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'user',
+                        child: Text('Standard Personal User'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'admin',
+                        child: Text('Master Console Administrator'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() {
+                          _selectedRole = value; // Tracks selection state
+                        });
+                      }
+                    },
+                  ),
+                if (!_isLoginMode) const SizedBox(height: 16),
 
                 // 📝 NOTE / HINTS:
                 // 7) Dynamic Field Visibility & Field Validation Checkers:
@@ -213,6 +244,9 @@ class _AuthScreenState extends State<AuthScreen> {
                   onPressed: _isLoading
                       ? null
                       : _submitAuthForm, // Disables button clicks while active
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
                   child: _isLoading
                       ? const SizedBox(
                           height: 20,

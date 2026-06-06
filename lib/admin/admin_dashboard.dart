@@ -3,7 +3,6 @@
 //==========================================================
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // 1. Import Firebase Auth
-import '../auth/auth_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Ensure this is imported at the top of the file
 //import 'package:expense_tracker/admin/manage_users.dart'; // Placeholder management view components
 //import 'package:expense_tracker/admin/manage_data.dart'; // Placeholder management view components
@@ -39,11 +38,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
         .signOut(); // 3. Disconnect session from Firebase servers
     if (!mounted) return;
     // 4. Wipe navigation stack history and push user completely back to login screen
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => const AuthScreen()),
-      (route) =>
-          false, // This clears the back button history so they cannot slip back in without a password
-    );
+    // Navigator.of(context).pushAndRemoveUntil(
+    //   MaterialPageRoute(builder: (context) => const AuthScreen()),
+    //   (route) =>
+    //       false, // This clears the back button history so they cannot slip back in without a password
+    // );
   }
 
   // 📝 NOTE / HINTS:

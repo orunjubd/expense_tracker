@@ -157,143 +157,226 @@ class _ExpensesState extends State<NewExpenses> {
   Widget build(context) {
     // Captures the exact height taken up by the smartphone software keyboard
     final keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
-    return SizedBox(
-      height:
-          double.infinity, // Tells the modal to respect full screen boundaries
-      child: SingleChildScrollView(
-        // Prevents layout crashes when keyboard opens
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            20,
-            48,
-            20,
-            keyboardSpace + 20,
-          ), // Dynamic spacing
-          child: Column(
-            children: [
-              TextField(
-                controller: _titleController,
-                maxLength: 50,
-                decoration: const InputDecoration(label: Text('Title')),
-              ),
-              Row(
+    // 2. Wrap everything inside a LayoutBuilder to look at modal size rules!
+    return LayoutBuilder(
+      builder: (ctx, constraints) {
+        // Check if the container box has enough width to fit items side-by-side
+        final isLandscapeMode = constraints.maxWidth >= 600;
+        return SizedBox(
+          height: double
+              .infinity, // Tells the modal to respect full screen boundaries
+          child: SingleChildScrollView(
+            // Prevents layout crashes when keyboard opens
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                20,
+                48,
+                20,
+                keyboardSpace + 20,
+              ), // Dynamic spacing
+              child: Column(
                 children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _amountController,
-                      keyboardType: TextInputType.numberWithOptions(
-                        decimal: true,
-                      ), // Allows decimal numbers
-                      // 📝 NOTE / HINTS:
-                      // 7) PRECISE KEYBOARD REGEX FILTER ROW:
-                      // What it does: This is an extra text validation layer operating inside your price input row.
-                      // - 'FilteringTextInputFormatter.allow()' uses a strict regular expression mask layer (`RegExp(r'^\d*\.?\d*')`)
-                      //   to block users from ever typing commas, minus signs, or text letters into your database number fields at the keyboard level.
-                      inputFormatters: [
-                        // This blocks minus signs and text characters completely at the keyboard level
-                        FilteringTextInputFormatter.allow(
-                          RegExp(r'^\d*\.?\d*'),
-                        ),
-                      ],
-                      decoration: const InputDecoration(
-                        prefixText: '\$ ', // Adds a dollar sign format prefix
-                        label: Text('Amount'),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                  // ==========================================================
+                  // ROW 1: TITLE & AMOUNT FIELDS SWITCHER TRACK
+                  // ==========================================================
+                  if (isLandscapeMode)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          _selectedDate == null
-                              ? 'No date selected'
-                              : formatter.format(_selectedDate!),
-                          style: const TextStyle(fontSize: 13), //! null check
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.calendar_month_outlined),
-                          onPressed: _presentDatePicker,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-
-              // 1. Standard spacing between inputs and the submit actions
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment
-                    .end, // Aligns buttons beautifully to the right
-                children: [
-                  // 📝 NOTE / HINTS:
-                  // 8) ENUM VALUES DYNAMIC DROPDOWN MAPPER:
-                  // What it does: This converts your rigid, coded category enum properties into a visual on-screen select option list.
-                  // - It loops through 'Category.values' and map-transforms each attribute item straight into a 'DropdownMenuItem' text block,
-                  //   automatically capitalizing the string name for a professional visual appearance.
-                  // Let the dropdown take up half the row dynamically
-                  DropdownButton<Category>(
-                    value:
-                        _selectedCategory, // FIXED: Tell the dropdown what is selected
-                    items: Category.values
-                        .map(
-                          (category) => DropdownMenuItem(
-                            value: category,
-                            child: Text(
-                              category.name[0].toUpperCase() +
-                                  category.name.substring(1),
+                        Expanded(
+                          child: TextField(
+                            controller: _titleController,
+                            maxLength: 50,
+                            decoration: const InputDecoration(
+                              label: Text('Title'),
                             ),
                           ),
-                        )
-                        .toList(),
-                    //),
-                    onChanged: (value) {
-                      if (value == null) return;
-                      setState(() {
-                        _selectedCategory =
-                            value; // FIXED: Assign to declared state variable
-                      });
-                    },
-                  ),
-                  const Spacer(), // Pushes the action buttons cleanly to the right side
-                  TextButton(
-                    onPressed: () {
-                      // This command instantly closes the bottom modal sheet or current page
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Cancel'),
-                  ),
-                  const SizedBox(
-                    width: 8,
-                  ), // Sta horizontal spacing between multiple buttons
-                  ElevatedButton(
-                    onPressed: _submitExpenseData,
-                    //() {
-                    //   // 1. Clean the text string input from the controller
-                    //   final enteredText = _amountController.text;
-                    //   // 2. Try to parse it, and if it fails (returns null), fallback to 0.00
-                    //   final parsedAmount = double.tryParse(enteredText) ?? 0.00;
-                    //   //print( 'Final safe amount: $parsedAmount',); // Will print 0.0 if input was "." or "-"
-                    //   // 3. You can now read the chosen category here!
-                    //   //print('Selected Category: $_selectedCategory');
-                    //   // 4. Close the modal
-                    //   Navigator.pop(context);
-                    // },
-                    child: Text(
-                      widget.expenseToEdit == null
-                          ? 'Save Expense'
-                          : 'Update Changes',
+                        ),
+                        const SizedBox(width: 24),
+                        Expanded(
+                          child: TextField(
+                            controller: _amountController,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                RegExp(r'^\d*\.?\d*'),
+                              ),
+                            ],
+                            decoration: const InputDecoration(
+                              prefixText: '\$ ',
+                              label: Text('Amount'),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    Column(
+                      children: [
+                        TextField(
+                          controller: _titleController,
+                          maxLength: 50,
+                          decoration: const InputDecoration(
+                            label: Text('Title'),
+                          ),
+                        ),
+                      ],
                     ),
+                  // ==========================================================
+                  // ROW 2: AMOUNT, DATE & DROPDOWN ACCORDION SELECTION FIELDS
+                  // ==========================================================
+                  Row(
+                    children: [
+                      // If portrait, Amount field sits down here under Title
+                      if (!isLandscapeMode)
+                        Expanded(
+                          child: TextField(
+                            controller: _amountController,
+                            keyboardType: TextInputType.numberWithOptions(
+                              decimal: true,
+                            ), // Allows decimal numbers
+                            // 📝 NOTE / HINTS:
+                            // 7) PRECISE KEYBOARD REGEX FILTER ROW:
+                            // What it does: This is an extra text validation layer operating inside your price input row.
+                            // - 'FilteringTextInputFormatter.allow()' uses a strict regular expression mask layer (`RegExp(r'^\d*\.?\d*')`)
+                            //   to block users from ever typing commas, minus signs, or text letters into your database number fields at the keyboard level.
+                            inputFormatters: [
+                              // This blocks minus signs and text characters completely at the keyboard level
+                              FilteringTextInputFormatter.allow(
+                                RegExp(r'^\d*\.?\d*'),
+                              ),
+                            ],
+                            decoration: const InputDecoration(
+                              prefixText:
+                                  '\$ ', // Adds a dollar sign format prefix
+                              label: Text('Amount'),
+                            ),
+                          ),
+                        ),
+                      // In landscape, Category dropdown pulls right next to your dates safely!
+                      if (isLandscapeMode)
+                        DropdownButton<Category>(
+                          value: _selectedCategory,
+                          items: Category.values
+                              .map(
+                                (category) => DropdownMenuItem(
+                                  value: category,
+                                  child: Text(
+                                    category.name[0].toUpperCase() +
+                                        category.name.substring(1),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            if (value == null) return;
+                            setState(() => _selectedCategory = value);
+                          },
+                        ),
+
+                      const Spacer(),
+                      // 📝 NOTE / HINTS:
+                      // 5) DATE PICKER ROW:
+                      // What it does: This builds a date picker row at the end of your transaction form.
+                      Row(
+                        //mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            _selectedDate == null
+                                ? 'No date selected'
+                                : formatter.format(_selectedDate!),
+                            style: const TextStyle(fontSize: 13), //! null check
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.calendar_month_outlined),
+                            onPressed: _presentDatePicker,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+
+                  // 1. Standard spacing between inputs and the submit actions
+                  const SizedBox(height: 16),
+                  // ==========================================================
+                  // ROW 3: LOWER SYSTEM SUBMISSION ACTION BUTTONS TRACK
+                  // ==========================================================
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment
+                        .end, // Aligns buttons beautifully to the right
+                    children: [
+                      // 📝 NOTE / HINTS:
+                      // 8) ENUM VALUES DYNAMIC DROPDOWN MAPPER:
+                      // What it does: This converts your rigid, coded category enum properties into a visual on-screen select option list.
+                      // - It loops through 'Category.values' and map-transforms each attribute item straight into a 'DropdownMenuItem' text block,
+                      //   automatically capitalizing the string name for a professional visual appearance.
+                      // Let the dropdown take up half the row dynamically
+                      // In portrait mode, Category dropdown sits down here right next to cancel
+                      if (!isLandscapeMode)
+                        DropdownButton<Category>(
+                          value:
+                              _selectedCategory, // FIXED: Tell the dropdown what is selected
+                          items: Category.values
+                              .map(
+                                (category) => DropdownMenuItem(
+                                  value: category,
+                                  child: Text(
+                                    category.name[0].toUpperCase() +
+                                        category.name.substring(1),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                          //),
+                          onChanged: (value) {
+                            if (value == null) return;
+                            setState(() {
+                              _selectedCategory =
+                                  value; // FIXED: Assign to declared state variable
+                            });
+                          },
+                        ),
+                      const Spacer(), // Pushes the action buttons cleanly to the right side
+                      TextButton(
+                        onPressed: () {
+                          // This command instantly closes the bottom modal sheet or current page
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Cancel'),
+                      ),
+                      const SizedBox(
+                        width: 8,
+                      ), // Sta horizontal spacing between multiple buttons
+                      ElevatedButton(
+                        onPressed: _submitExpenseData,
+                        //() {
+                        //   // 1. Clean the text string input from the controller
+                        //   final enteredText = _amountController.text;
+                        //   // 2. Try to parse it, and if it fails (returns null), fallback to 0.00
+                        //   final parsedAmount = double.tryParse(enteredText) ?? 0.00;
+                        //   //print( 'Final safe amount: $parsedAmount',); // Will print 0.0 if input was "." or "-"
+                        //   // 3. You can now read the chosen category here!
+                        //   //print('Selected Category: $_selectedCategory');
+                        //   // 4. Close the modal
+                        //   Navigator.pop(context);
+                        // },
+                        child: Text(
+                          widget.expenseToEdit == null
+                              ? 'Save Expense'
+                              : 'Update Changes',
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

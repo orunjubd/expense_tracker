@@ -23,29 +23,56 @@ class AuthService {
   // 3. 'on FirebaseAuthException': Catches network validation rejections (like 'email already in use')
   //    and throws a clean exception message upward for your UI screen file to display inside a SnackBar [INDEX].
   // [1. REGISTER NEW USER / ADMIN PROFILES IN THE CLOUD]
-  Future<UserCredential?> signUpAdmin({
+  // Future<UserCredential?> signUpAdmin({
+  //   required String email,
+  //   required String password,
+  //   required String username,
+  // }) async {
+  //   try {
+  //     // Create user credential node in Firebase Authentication
+  //     UserCredential userCredential = await _auth
+  //         .createUserWithEmailAndPassword(email: email, password: password);
+
+  //     // Save additional role-based metadata inside the Firestore Cloud Database
+  //     if (userCredential.user != null) {
+  //       await _firestore.collection('users').doc(userCredential.user!.uid).set({
+  //         'uid': userCredential.user!.uid,
+  //         'username': username,
+  //         'email': email,
+  //         'role': 'admin', // Hardcoded role designation for this control script
+  //         'createdAt': Timestamp.now(),
+  //       });
+  //     }
+  //     return userCredential;
+  //   } on FirebaseAuthException catch (e) {
+  //     // Pass the explicit error message upward to be caught by the UI overlay snackbars
+  //     throw Exception(e.message ?? 'An error occurred during registration.');
+  //   }
+  // }
+
+  // 1. UPDATED: Accepts a dynamic role string variable ('user' or 'admin')
+  Future<UserCredential?> signUpUser({
     required String email,
     required String password,
     required String username,
+    required String role, // 👈 ADD THIS PARAMETER
   }) async {
     try {
-      // Create user credential node in Firebase Authentication
       UserCredential userCredential = await _auth
           .createUserWithEmailAndPassword(email: email, password: password);
 
-      // Save additional role-based metadata inside the Firestore Cloud Database
       if (userCredential.user != null) {
         await _firestore.collection('users').doc(userCredential.user!.uid).set({
           'uid': userCredential.user!.uid,
           'username': username,
           'email': email,
-          'role': 'admin', // Hardcoded role designation for this control script
+          'role':
+              role, // 👈 FIXED: No longer hardcoded! Assigns 'user' or 'admin' dynamically
           'createdAt': Timestamp.now(),
         });
       }
       return userCredential;
     } on FirebaseAuthException catch (e) {
-      // Pass the explicit error message upward to be caught by the UI overlay snackbars
       throw Exception(e.message ?? 'An error occurred during registration.');
     }
   }
